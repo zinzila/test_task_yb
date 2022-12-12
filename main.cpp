@@ -1,5 +1,8 @@
 #include <iostream>
 
-int main(int, char**) {
+#include "src/simulation/SingleExecution.h"
+
+int main(int, char**)
+{
     std::cout << "Hello, world!\n";
 }
