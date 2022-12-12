@@ -1,8 +1,14 @@
 #pragma once
 
+#include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <mutex>
+#include <queue>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -44,6 +50,11 @@ public:
         void *GetEvent(void) const
         {
             return event_;
+        }
+
+        bool IsValid() const
+        {
+            return event_ != nullptr;
         }
 
     private:
@@ -101,6 +112,10 @@ public:
         const size_t event_size_;
     };
 
+public:
+    IEventProcessor();
+    ~IEventProcessor();
+
     template <class T, template <class> class Constructor, class... Args>
     ReservedEvent Reserve(Args &&...args)
     {
@@ -140,9 +155,25 @@ public:
     //
     /// ---
     void Commit(const Integer sequence_number, const size_t count);
+
 private:
     std::pair<Integer, void *> ReserveEvent();
 
+    void Run();
+
+private:
+    std::atomic_bool stop_{false};
+
+    std::atomic<int_fast64_t> current_number_;
+
+    std::map<Integer, void *> events_;
+    std::mutex event_mutex_;
+
+    std::queue<void *> queue_;
+    std::mutex queue_mutex_;
+    std::condition_variable queue_cv_;
+
+    std::thread execution_thread_;
 };
 
 template <class TEvent>

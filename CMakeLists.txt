@@ -16,6 +16,7 @@ endif()
 
 add_executable(youbourse
     main.cpp
+    src/IEventProcessor.cpp
     src/simulation/TestEventProducer.cpp
     src/simulation/SingleExecution.cpp
 )
@@ -27,4 +28,3 @@ target_include_directories(youbourse
 
 enable_testing()
 add_subdirectory(tests)
-
