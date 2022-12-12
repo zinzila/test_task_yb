@@ -1,4 +1,6 @@
+#pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <utility>
@@ -6,8 +8,20 @@
 
 using Integer = int_fast64_t;
 
+template <typename TEvent>
+class NewPlacementConstructor
+{
+public:
+    template <class... Args>
+    static void Construct(void *buffer, Args &&...args);
+};
+
 class IEventProcessor
 {
+public:
+    // Maximum size of an event object
+    static constexpr size_t kMaxEventSize = 256;
+
 public:
     ////////////////////////////////////////////////////////////////////////
     //
@@ -126,4 +140,16 @@ public:
     //
     /// ---
     void Commit(const Integer sequence_number, const size_t count);
+private:
+    std::pair<Integer, void *> ReserveEvent();
+
 };
+
+template <class TEvent>
+template <class... Args>
+void NewPlacementConstructor<TEvent>::Construct(void *buffer, Args &&...args)
+{
+    static_assert(sizeof(TEvent) < IEventProcessor::kMaxEventSize, "Event size is not supported");
+    auto *event = new (buffer) TEvent(std::forward<Args>(args)...);
+    assert(event != nullptr);
+}
