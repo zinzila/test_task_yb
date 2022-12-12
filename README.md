@@ -55,3 +55,23 @@ for an event without knowing the actual size of the event, it is possible to set
 possible to give back reserved buffers for usage with placement new without knowing the actual size and since all the sizes are the\
 same to avoid complex problems of handling fragmentation. Major disadvantage is excessive memory usage, which is assumed acceptable for
 this task.
+
+## Benchmarking
+
+For benchmarking Catch2 benchmark capability is used. Following command used to collect results:
+
+```
+./build/tests/benchmark | tee "results/benchmark-($(git describe --tags --dirty)).txt"
+```
+
+Source code for benchmark: `tests/benchmark.cpp`
+
+## Profiling
+
+Using `valgrind` by means of `callgrind` tool.
+
+```
+valgrind --tool=callgrind --callgrind-out-file="results/callgrind-($(git describe --tags --dirty)).out"  ./build/youbourse
+```
+
+The results are analyzed using [kCachegrind](https://kcachegrind.github.io/html/Home.html)
