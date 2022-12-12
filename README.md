@@ -56,6 +56,20 @@ possible to give back reserved buffers for usage with placement new without know
 same to avoid complex problems of handling fragmentation. Major disadvantage is excessive memory usage, which is assumed acceptable for
 this task.
 
+## Simple runs
+
+Run app multiple times to collect some timings. Results are in CSV format:
+```
+producer_count, event_per_producer, total_time, average_per_producer
+```
+
+Command to collect:
+
+```
+for i in {0..20}; do nice -20 ./build/youbourse ; sleep 2; done \
+    | tee "results/multipleruns-($(git describe --tags --dirty)).csv"
+```
+
 ## Benchmarking
 
 For benchmarking Catch2 benchmark capability is used. Following command used to collect results:
