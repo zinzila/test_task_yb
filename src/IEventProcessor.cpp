@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 #include "IEvent.h"
 
@@ -40,7 +41,7 @@ void IEventProcessor::Commit(const Integer sequence_number)
     }
     {
         std::lock_guard lock_queue{queue_mutex_};
-        queue_.push(event);
+        queue_.emplace_back(event);
     }
     queue_cv_.notify_one();
 }
@@ -59,6 +60,8 @@ std::pair<Integer, void *> IEventProcessor::ReserveEvent()
 
 void IEventProcessor::Run()
 {
+    decltype(queue_) dbl_queue;
+
     while (!stop_.load(std::memory_order_acquire)) {
         void *event = nullptr;
 
@@ -68,13 +71,13 @@ void IEventProcessor::Run()
             continue;
         }
 
-        event = queue_.front();
-        queue_.pop();
+        queue_.swap(dbl_queue);
 
         lock.unlock();
 
-        assert(event != nullptr);
-
-        static_cast<IEvent *>(event)->Process();
+        for (auto *event : dbl_queue) {
+            static_cast<IEvent *>(event)->Process();
+        }
+        dbl_queue.clear();
     }
 }

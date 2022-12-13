@@ -180,7 +180,7 @@ private:
     std::vector<EventReservation> reserved_events_;
     SpinLock event_mutex_;
 
-    std::queue<void *> queue_;
+    std::vector<void *> queue_;
     SpinLock queue_mutex_;
     std::condition_variable queue_cv_;
 
