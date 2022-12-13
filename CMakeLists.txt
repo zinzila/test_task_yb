@@ -27,6 +27,7 @@ endif()
 add_executable(youbourse
     main.cpp
     src/IEventProcessor.cpp
+    src/SpinLock.cpp
     src/simulation/TestEventProducer.cpp
     src/simulation/SingleExecution.cpp
 )

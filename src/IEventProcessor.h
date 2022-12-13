@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include "SpinLock.h"
+
 using Integer = int_fast64_t;
 
 template <typename TEvent>
@@ -176,10 +178,10 @@ private:
     std::atomic<int_fast64_t> current_number_;
 
     std::vector<EventReservation> reserved_events_;
-    std::shared_mutex event_mutex_;
+    SpinLock event_mutex_;
 
     std::queue<void *> queue_;
-    std::mutex queue_mutex_;
+    SpinLock queue_mutex_;
     std::condition_variable queue_cv_;
 
     std::thread execution_thread_;

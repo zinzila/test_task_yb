@@ -1,8 +1,10 @@
 #include "IEventProcessor.h"
 
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 #include "IEvent.h"
 
@@ -33,7 +35,7 @@ void IEventProcessor::Commit(const Integer sequence_number)
     // queue like this.
     void *event;
     {
-        std::shared_lock lock_event{event_mutex_};
+        std::lock_guard lock_event{event_mutex_};
         event = reserved_events_[sequence_number].storage_.get();
     }
     {
@@ -57,21 +59,22 @@ std::pair<Integer, void *> IEventProcessor::ReserveEvent()
 
 void IEventProcessor::Run()
 {
-    while (!stop_.load()) {
+    while (!stop_.load(std::memory_order_acquire)) {
         void *event = nullptr;
 
         std::unique_lock lock(queue_mutex_);
-        queue_cv_.wait(lock, [this] { return !queue_.empty() || stop_.load(); });
 
-        if (!queue_.empty()) {
-            event = queue_.front();
-            queue_.pop();
-
-            lock.unlock();
-
-            assert(event != nullptr);
-
-            static_cast<IEvent *>(event)->Process();
+        if (queue_.empty()) {
+            continue;
         }
+
+        event = queue_.front();
+        queue_.pop();
+
+        lock.unlock();
+
+        assert(event != nullptr);
+
+        static_cast<IEvent *>(event)->Process();
     }
 }
