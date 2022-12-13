@@ -1,0 +1,47 @@
+Randomness seeded to: 555812342
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+benchmark is a Catch2 v3.2.1 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+IEventProcessor benchmark
+-------------------------------------------------------------------------------
+/workspaces/youbourse_1/tests/benchmark.cpp:14
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+Reserve event                                  100           118      6.431 ms 
+                                        3.58332 us    445.231 ns    19.2327 us 
+                                        31.1685 us    87.0249 ns     68.278 us 
+                                                                               
+Reserve and Commit event                       100            39     6.5715 ms 
+                                        1.10488 us    1.08002 us    1.12974 us 
+                                         126.62 ns    97.5668 ns    170.536 ns 
+                                                                               
+
+-------------------------------------------------------------------------------
+Threaded benchmark
+-------------------------------------------------------------------------------
+/workspaces/youbourse_1/tests/benchmark.cpp:30
+...............................................................................
+
+benchmark name                       samples       iterations    estimated
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+1 producer, 5000 events                        100             1    237.098 ms 
+                                        2.36606 ms    2.32036 ms    2.54649 ms 
+                                        407.126 us    91.3906 us    949.617 us 
+                                                                               
+10 producers, 5000 events                      100             1     2.66951 s 
+                                        56.5194 ms    53.8978 ms    58.6744 ms 
+                                        12.1088 ms    10.2293 ms    14.1075 ms 
+                                                                               
+
+===============================================================================
+All tests passed (3 assertions in 2 test cases)
+
