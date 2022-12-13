@@ -1,6 +1,7 @@
 #include "IEventProcessor.h"
 
 #include <cassert>
+#include <memory>
 #include <mutex>
 
 #include "IEvent.h"
@@ -30,11 +31,11 @@ void IEventProcessor::Commit(const Integer sequence_number)
 {
     // NOTE: Since we don't have event release logic, it's OK to pass the pointer to the execution
     // queue like this.
-    auto *event = [&, this]() {
-        std::lock_guard lock_event{event_mutex_};
-        return events_.at(sequence_number);
-    }();
-
+    void *event;
+    {
+        std::shared_lock lock_event{event_mutex_};
+        event = reserved_events_[sequence_number].storage_.get();
+    }
     {
         std::lock_guard lock_queue{queue_mutex_};
         queue_.push(event);
@@ -44,20 +45,14 @@ void IEventProcessor::Commit(const Integer sequence_number)
 
 std::pair<Integer, void *> IEventProcessor::ReserveEvent()
 {
-    // NOTE: Memory leak is intentional to avoid implementing cleanup in an intermediate version
-    void *new_object = new char[kMaxEventSize];
+    EventReservation er;
+    er.storage_ = std::make_unique<std::byte[]>(k_max_event_size);
 
-    auto sequence_number = current_number_.fetch_add(1);
+    std::lock_guard lock{event_mutex_};
+    auto result = std::pair{reserved_events_.size(), er.storage_.get()};
+    reserved_events_.push_back(std::move(er));
 
-    auto const [it, inserted] = [&, this]() {
-        std::lock_guard lock{event_mutex_};
-        return events_.emplace(sequence_number, new_object);
-    }();
-
-    // if a value was replaced then something went wrong
-    assert(inserted == true);
-
-    return *it;
+    return result;
 }
 
 void IEventProcessor::Run()

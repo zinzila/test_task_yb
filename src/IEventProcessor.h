@@ -1,13 +1,16 @@
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <queue>
+#include <shared_mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -26,7 +29,7 @@ class IEventProcessor
 {
 public:
     // Maximum size of an event object
-    static constexpr size_t kMaxEventSize = 256;
+    static constexpr size_t k_max_event_size = 256;
 
 public:
     ////////////////////////////////////////////////////////////////////////
@@ -162,12 +165,18 @@ private:
     void Run();
 
 private:
+    struct EventReservation
+    {
+        std::unique_ptr<std::byte[]> storage_;
+    };
+
+private:
     std::atomic_bool stop_{false};
 
     std::atomic<int_fast64_t> current_number_;
 
-    std::map<Integer, void *> events_;
-    std::mutex event_mutex_;
+    std::vector<EventReservation> reserved_events_;
+    std::shared_mutex event_mutex_;
 
     std::queue<void *> queue_;
     std::mutex queue_mutex_;
@@ -180,7 +189,8 @@ template <class TEvent>
 template <class... Args>
 void NewPlacementConstructor<TEvent>::Construct(void *buffer, Args &&...args)
 {
-    static_assert(sizeof(TEvent) < IEventProcessor::kMaxEventSize, "Event size is not supported");
+    static_assert(sizeof(TEvent) < IEventProcessor::k_max_event_size,
+                  "Event size is not supported");
     auto *event = new (buffer) TEvent(std::forward<Args>(args)...);
     assert(event != nullptr);
 }
