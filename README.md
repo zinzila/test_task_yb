@@ -1,4 +1,3 @@
-
 # Developemnt
 
 ## Task analysis
@@ -89,3 +88,14 @@ valgrind --tool=callgrind --callgrind-out-file="results/callgrind-($(git describ
 ```
 
 The results are analyzed using [kCachegrind](https://kcachegrind.github.io/html/Home.html)
+
+
+# Repo structure
+
+Commits which contain task implementation start with `task`. Tags are set to point to each step of the implementation. Each next
+step builds on top of the previous.
+
+- `initial` first implementation without any consideration for preformance. Uses `map` to find task by sequence number
+- `indexed_access` replace `map` with a vector and use `sequence_number` to access elements by index
+- `spinlock` use spinlock instead of mutexes
+- `vector_queue` use `vector` instead of `queue` to avoid allocations on insertion to the queue
